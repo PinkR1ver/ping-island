@@ -44,18 +44,18 @@ const confettiColors = ["#fff3d9", "#ffd86b", "#ffb05c", "#ff7a59", "#ffe6f4"];
 let submitCelebrateTimeout = null;
 const detachedPetImages = Array.from(document.querySelectorAll(".detached-header-icon, .floating-pet-image"));
 const detachedPetSources = [
-  { src: "./assets/mascots/claude.gif", alt: "Claude Code mascot" },
-  { src: "./assets/mascots/codex.gif", alt: "Codex mascot" },
-  { src: "./assets/mascots/gemini.gif", alt: "Gemini CLI mascot" },
-  { src: "./assets/mascots/hermes.gif", alt: "Hermes Agent mascot" },
-  { src: "./assets/mascots/qwen.gif", alt: "Qwen Code mascot" },
-  { src: "./assets/mascots/openclaw.gif", alt: "OpenClaw mascot" },
-  { src: "./assets/mascots/opencode.gif", alt: "OpenCode mascot" },
-  { src: "./assets/mascots/cursor.gif", alt: "Cursor mascot" },
-  { src: "./assets/mascots/trae.gif", alt: "Trae mascot" },
-  { src: "./assets/mascots/qoder.gif", alt: "Qoder mascot" },
-  { src: "./assets/mascots/codebuddy.gif", alt: "CodeBuddy mascot" },
-  { src: "./assets/mascots/copilot.gif", alt: "GitHub Copilot mascot" }
+  { src: "./assets/mascots/claude.gif", alt: "Claude Code Buddy" },
+  { src: "./assets/mascots/codex.gif", alt: "Codex Buddy" },
+  { src: "./assets/mascots/gemini.gif", alt: "Gemini CLI Buddy" },
+  { src: "./assets/mascots/hermes.gif", alt: "Hermes Agent Buddy" },
+  { src: "./assets/mascots/qwen.gif", alt: "Qwen Code Buddy" },
+  { src: "./assets/mascots/openclaw.gif", alt: "OpenClaw Buddy" },
+  { src: "./assets/mascots/opencode.gif", alt: "OpenCode Buddy" },
+  { src: "./assets/mascots/cursor.gif", alt: "Cursor Buddy" },
+  { src: "./assets/mascots/trae.gif", alt: "Trae Buddy" },
+  { src: "./assets/mascots/qoder.gif", alt: "Qoder Buddy" },
+  { src: "./assets/mascots/codebuddy.gif", alt: "CodeBuddy Buddy" },
+  { src: "./assets/mascots/copilot.gif", alt: "GitHub Copilot Buddy" }
 ];
 
 function setSubmitReady(isReady) {
