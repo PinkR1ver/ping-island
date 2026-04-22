@@ -247,7 +247,7 @@ private struct DetachedPetPosterView: View {
                 )
                 .frame(width: 256, height: 256)
 
-            if let icon = loadedImage(from: options.iconURL) {
+            if let icon = posterImage(from: options.iconURL) {
                 icon
                     .resizable()
                     .interpolation(.high)
@@ -300,42 +300,25 @@ private struct DetachedPetPosterView: View {
 
             ZStack {
                 RoundedRectangle(cornerRadius: 36, style: .continuous)
-                    .fill(Color(red: 0.11, green: 0.11, blue: 0.12))
+                    .fill(Color.white.opacity(0.10))
                     .overlay(
                         RoundedRectangle(cornerRadius: 36, style: .continuous)
-                            .stroke(Color.white.opacity(0.06), lineWidth: 1.5)
+                            .stroke(Color.white.opacity(0.20), lineWidth: 1.5)
                     )
 
-                if let preview = loadedImage(from: options.notchPreviewURL) {
-                    preview
-                        .resizable()
-                        .interpolation(.high)
-                        .frame(width: 760, height: 160)
-                        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                                .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                        )
-                        .offset(x: -180, y: -260)
+                VStack {
+                    HStack {
+                        Text("Bottom-right floating")
+                            .font(.system(size: 24, weight: .semibold, design: .rounded))
+                            .foregroundStyle(Color.white.opacity(0.52))
+                        Spacer()
+                    }
+                    Spacer()
                 }
+                .padding(26)
 
-                Path { path in
-                    path.move(to: CGPoint(x: 450, y: 240))
-                    path.addQuadCurve(
-                        to: CGPoint(x: 695, y: 420),
-                        control: CGPoint(x: 545, y: 380)
-                    )
-                }
-                .stroke(
-                    Color.white.opacity(0.9),
-                    style: StrokeStyle(lineWidth: 4, lineCap: .round, dash: [8, 10])
-                )
-
-                FloatingDemoPet()
-                    .offset(x: 180, y: 130)
-
-                FloatingDemoBubble()
-                    .offset(x: 130, y: -10)
+                SettingsStyleFloatingPreview(notchPreviewURL: options.notchPreviewURL)
+                    .padding(34)
             }
             .frame(height: 980)
         }
@@ -403,29 +386,72 @@ private struct DetachedPetPosterView: View {
             )
     }
 
-    private func loadedImage(from url: URL) -> Image? {
-        guard let image = NSImage(contentsOf: url) else { return nil }
-        return Image(nsImage: image)
-    }
 }
 
-private struct FloatingDemoPet: View {
+private struct SettingsStyleFloatingPreview: View {
+    let notchPreviewURL: URL
+
     var body: some View {
         ZStack {
-            Circle()
-                .fill(Color.white.opacity(0.10))
-                .frame(width: 220, height: 220)
+            if let preview = posterImage(from: notchPreviewURL) {
+                preview
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 720, height: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                    )
+                    .offset(x: -170, y: -250)
+            }
 
-            RoundedRectangle(cornerRadius: 36, style: .continuous)
-                .fill(Color.white.opacity(0.86))
-                .frame(width: 180, height: 180)
+            Path { path in
+                path.move(to: CGPoint(x: 430, y: 230))
+                path.addQuadCurve(
+                    to: CGPoint(x: 690, y: 430),
+                    control: CGPoint(x: 560, y: 360)
+                )
+            }
+            .stroke(
+                Color.white.opacity(0.85),
+                style: StrokeStyle(lineWidth: 4, lineCap: .round, dash: [8, 10])
+            )
 
-            MascotView(kind: .claude, status: .dragging, size: 138, animationTime: 0.35)
+            VStack(alignment: .trailing, spacing: 6) {
+                HStack(spacing: 8) {
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(Color.white.opacity(0.16))
+                        .frame(width: 32, height: 3)
+
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(Color.white.opacity(0.10))
+                        .frame(width: 14, height: 3)
+                }
+
+                HStack(alignment: .bottom, spacing: 4) {
+                    MascotView(kind: .claude, status: .dragging, size: 96, animationTime: 0.35)
+
+                    Text("2")
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(red: 1.0, green: 0.55, blue: 0.26))
+                        .offset(y: -6)
+                }
+            }
+            .offset(x: 265, y: 245)
+
+            SettingsStyleFloatingBubble()
+                .offset(x: 120, y: 10)
         }
     }
 }
 
-private struct FloatingDemoBubble: View {
+private func posterImage(from url: URL) -> Image? {
+    guard let image = NSImage(contentsOf: url) else { return nil }
+    return Image(nsImage: image)
+}
+
+private struct SettingsStyleFloatingBubble: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 10) {

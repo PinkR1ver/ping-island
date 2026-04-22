@@ -38,18 +38,6 @@
   <sub>Official website: <a href="https://erha19.github.io/ping-island/">erha19.github.io/ping-island</a></sub>
 </p>
 
-## New in 0.4.0: Pet Undocking
-
-<p align="center">
-  <img src="docs/images/ping-island-undocked-pet-feature.png" width="960" alt="Ping Island pet undocking feature demo">
-</p>
-
-Ping Island 0.4.0 introduced the pet-undocking feature: drag the mascot out of the notch and turn it into a floating desktop companion.
-
-- The floating pet stays near your active window instead of taking over the notch.
-- Hover or click it to open anchored bubbles for approvals, follow-ups, and session status.
-- Ping Island remembers the pet position and lets you right-click the mascot to reopen Settings.
-
 <p align="center">
   <img src="docs/images/mascots/claude.gif" width="36" alt="Claude mascot" title="Claude Code">&nbsp;
   <img src="docs/images/mascots/codex.gif" width="36" alt="Codex mascot" title="Codex">&nbsp;
@@ -66,6 +54,18 @@ Ping Island 0.4.0 introduced the pet-undocking feature: drag the mascot out of t
 <p align="center">
   <sub>Claude Code · Codex · Gemini CLI · Hermes Agent · Qwen Code · OpenClaw · OpenCode · Cursor · Qoder · CodeBuddy · GitHub Copilot</sub>
 </p>
+
+## New in 0.4.0: Pet Undocking
+
+<p align="center">
+  <img src="docs/images/ping-island-undocked-pet-feature.png" width="960" alt="Ping Island pet undocking feature demo">
+</p>
+
+Ping Island 0.4.0 introduced the pet-undocking feature: drag the mascot out of the notch and turn it into a floating desktop companion.
+
+- The floating pet stays near your active window instead of taking over the notch.
+- Hover or click it to open anchored bubbles for approvals, follow-ups, and session status.
+- Ping Island remembers the pet position and lets you right-click the mascot to reopen Settings.
 
 ## What is Ping Island?
 
