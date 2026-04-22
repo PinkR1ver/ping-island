@@ -150,71 +150,50 @@ private enum PosterExportError: LocalizedError {
 private struct DetachedPetPosterView: View {
     let options: PosterOptions
 
-    private let featureRows = [
-        "Drag the mascot out of the notch into a desktop companion.",
-        "Hover or click the floating pet to open anchored session bubbles.",
-        "Remember the pet position, then right-click it to reopen Settings.",
-    ]
-
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.98, green: 0.97, blue: 0.93),
-                    Color(red: 0.94, green: 0.95, blue: 0.98),
-                    Color(red: 0.93, green: 0.95, blue: 0.92),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color.black
 
             Circle()
-                .fill(Color(red: 1.0, green: 0.67, blue: 0.25).opacity(0.16))
-                .frame(width: 760, height: 760)
-                .blur(radius: 24)
-                .offset(x: -760, y: -420)
+                .fill(Color(red: 0.98, green: 0.64, blue: 0.26).opacity(0.24))
+                .frame(width: 780, height: 780)
+                .blur(radius: 90)
+                .offset(x: -760, y: -520)
 
             Circle()
-                .fill(Color(red: 0.22, green: 0.74, blue: 0.64).opacity(0.15))
+                .fill(Color(red: 0.22, green: 0.74, blue: 0.64).opacity(0.20))
                 .frame(width: 860, height: 860)
-                .blur(radius: 28)
-                .offset(x: 760, y: 420)
+                .blur(radius: 100)
+                .offset(x: 780, y: 460)
 
-            VStack(spacing: 44) {
+            VStack(spacing: 38) {
                 header
 
-                HStack(alignment: .top, spacing: 38) {
-                    featureCard
-                        .frame(width: 880)
-
-                    demoCard
-                        .frame(width: 1280)
-                }
-
-                footer
+                demoCard
+                    .frame(maxWidth: .infinity)
             }
-            .padding(.horizontal, 96)
-            .padding(.vertical, 82)
+            .padding(.horizontal, 120)
+            .padding(.vertical, 92)
         }
     }
 
     private var header: some View {
-        HStack(spacing: 44) {
+        HStack(spacing: 30) {
             appIcon
 
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("PING ISLAND 0.4.0")
-                    .font(.system(size: 28, weight: .black, design: .rounded))
+                    .font(.system(size: 24, weight: .black, design: .rounded))
                     .tracking(3)
-                    .foregroundStyle(Color(red: 0.56, green: 0.45, blue: 0.30))
+                    .foregroundStyle(Color.white.opacity(0.52))
 
                 Text("Pet Undocking")
-                    .font(.system(size: 122, weight: .black, design: .rounded))
-                    .foregroundStyle(Color(red: 0.16, green: 0.13, blue: 0.10))
+                    .font(.system(size: 96, weight: .black, design: .rounded))
+                    .foregroundStyle(Color.white)
 
-                Text("Turn the notch mascot into a floating desktop companion for fast approvals, follow-ups, and status checks.")
-                    .font(.system(size: 36, weight: .medium, design: .rounded))
-                    .foregroundStyle(Color(red: 0.40, green: 0.34, blue: 0.28))
+                Text("A settings-style preview for the floating pet workflow.")
+                    .font(.system(size: 26, weight: .medium, design: .rounded))
+                    .foregroundStyle(Color.white.opacity(0.64))
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -228,164 +207,59 @@ private struct DetachedPetPosterView: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            Color.white.opacity(0.95),
-                            Color.white.opacity(0.14),
+                            Color.white.opacity(0.38),
+                            Color.white.opacity(0.10),
                             .clear,
                         ],
                         center: .center,
                         startRadius: 10,
-                        endRadius: 220
+                        endRadius: 160
                     )
                 )
-                .frame(width: 320, height: 320)
+                .frame(width: 220, height: 220)
 
             RoundedRectangle(cornerRadius: 78, style: .continuous)
-                .fill(.white.opacity(0.44))
+                .fill(.white.opacity(0.10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 78, style: .continuous)
-                        .stroke(.white.opacity(0.88), lineWidth: 2)
+                        .stroke(.white.opacity(0.18), lineWidth: 1.5)
                 )
-                .frame(width: 256, height: 256)
+                .frame(width: 170, height: 170)
 
             if let icon = posterImage(from: options.iconURL) {
                 icon
                     .resizable()
                     .interpolation(.high)
-                    .frame(width: 196, height: 196)
-                    .clipShape(RoundedRectangle(cornerRadius: 44, style: .continuous))
+                    .frame(width: 134, height: 134)
+                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
             }
         }
-        .frame(width: 320, height: 320)
-    }
-
-    private var featureCard: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            cardLabel("Feature Highlight", accent: Color(red: 1.0, green: 0.67, blue: 0.25))
-
-            Text("A notch that can leave the notch.")
-                .font(.system(size: 54, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(red: 0.16, green: 0.13, blue: 0.10))
-                .fixedSize(horizontal: false, vertical: true)
-
-            ForEach(featureRows, id: \.self) { bullet in
-                HStack(alignment: .top, spacing: 16) {
-                    Circle()
-                        .fill(Color(red: 1.0, green: 0.67, blue: 0.25))
-                        .frame(width: 12, height: 12)
-                        .padding(.top, 14)
-
-                    Text(bullet)
-                        .font(.system(size: 32, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color(red: 0.22, green: 0.18, blue: 0.14))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-
-            Spacer(minLength: 0)
-
-            HStack(spacing: 14) {
-                featureTag("drag to detach")
-                featureTag("anchored bubbles")
-                featureTag("remembered position")
-            }
-        }
-        .padding(34)
-        .frame(maxWidth: .infinity, minHeight: 980, alignment: .topLeading)
-        .background(cardBackground)
+        .frame(width: 220, height: 220)
     }
 
     private var demoCard: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            cardLabel("Demo", accent: Color(red: 0.22, green: 0.74, blue: 0.64))
-
-            ZStack {
-                RoundedRectangle(cornerRadius: 36, style: .continuous)
-                    .fill(Color.white.opacity(0.10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 36, style: .continuous)
-                            .stroke(Color.white.opacity(0.20), lineWidth: 1.5)
+        ZStack {
+            RoundedRectangle(cornerRadius: 46, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.27, green: 0.17, blue: 0.08),
+                            Color(red: 0.10, green: 0.08, blue: 0.06)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 46, style: .continuous)
+                        .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                )
 
-                VStack {
-                    HStack {
-                        Text("Bottom-right floating")
-                            .font(.system(size: 24, weight: .semibold, design: .rounded))
-                            .foregroundStyle(Color.white.opacity(0.52))
-                        Spacer()
-                    }
-                    Spacer()
-                }
-                .padding(26)
-
-                SettingsStyleFloatingPreview(notchPreviewURL: options.notchPreviewURL)
-                    .padding(34)
-            }
-            .frame(height: 980)
+            SettingsStyleFloatingPreview(notchPreviewURL: options.notchPreviewURL)
+                .padding(48)
         }
-        .padding(34)
-        .background(cardBackground)
+        .frame(height: 1120)
     }
-
-    private var footer: some View {
-        HStack(spacing: 18) {
-            footerPill("New in 0.4.0")
-            footerPill("Pet undocking")
-            footerPill("Desktop companion")
-            footerPill("Native macOS interaction")
-        }
-    }
-
-    private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: 40, style: .continuous)
-            .fill(.white.opacity(0.58))
-            .overlay(
-                RoundedRectangle(cornerRadius: 40, style: .continuous)
-                    .stroke(Color.white.opacity(0.9), lineWidth: 1.5)
-            )
-            .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 12)
-    }
-
-    private func cardLabel(_ text: String, accent: Color) -> some View {
-        HStack(spacing: 10) {
-            Circle()
-                .fill(accent)
-                .frame(width: 14, height: 14)
-
-            Text(text.uppercased())
-                .font(.system(size: 22, weight: .black, design: .rounded))
-                .tracking(2.2)
-                .foregroundStyle(Color(red: 0.50, green: 0.42, blue: 0.34))
-        }
-    }
-
-    private func featureTag(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 22, weight: .bold, design: .rounded))
-            .foregroundStyle(Color(red: 0.30, green: 0.24, blue: 0.18))
-            .padding(.horizontal, 18)
-            .padding(.vertical, 12)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.78))
-            )
-    }
-
-    private func footerPill(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 22, weight: .bold, design: .rounded))
-            .foregroundStyle(Color(red: 0.29, green: 0.22, blue: 0.16))
-            .padding(.horizontal, 22)
-            .padding(.vertical, 14)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(.white.opacity(0.58))
-            )
-            .overlay(
-                Capsule(style: .continuous)
-                    .stroke(.white.opacity(0.92), lineWidth: 2)
-            )
-    }
-
 }
 
 private struct SettingsStyleFloatingPreview: View {
@@ -393,24 +267,38 @@ private struct SettingsStyleFloatingPreview: View {
 
     var body: some View {
         ZStack {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.white.opacity(0.035))
+
             if let preview = posterImage(from: notchPreviewURL) {
                 preview
                     .resizable()
                     .interpolation(.high)
-                    .frame(width: 720, height: 150)
+                    .frame(width: 880, height: 185)
                     .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 28, style: .continuous)
                             .stroke(Color.white.opacity(0.10), lineWidth: 1)
                     )
-                    .offset(x: -170, y: -250)
+                    .offset(x: -180, y: -280)
             }
 
+            VStack {
+                HStack {
+                    Text("Bottom-right floating")
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.46))
+                    Spacer()
+                }
+                Spacer()
+            }
+            .padding(30)
+
             Path { path in
-                path.move(to: CGPoint(x: 430, y: 230))
+                path.move(to: CGPoint(x: 500, y: 260))
                 path.addQuadCurve(
-                    to: CGPoint(x: 690, y: 430),
-                    control: CGPoint(x: 560, y: 360)
+                    to: CGPoint(x: 760, y: 520),
+                    control: CGPoint(x: 625, y: 410)
                 )
             }
             .stroke(
@@ -422,11 +310,11 @@ private struct SettingsStyleFloatingPreview: View {
                 HStack(spacing: 8) {
                     RoundedRectangle(cornerRadius: 2, style: .continuous)
                         .fill(Color.white.opacity(0.16))
-                        .frame(width: 32, height: 3)
+                        .frame(width: 42, height: 4)
 
                     RoundedRectangle(cornerRadius: 2, style: .continuous)
                         .fill(Color.white.opacity(0.10))
-                        .frame(width: 14, height: 3)
+                        .frame(width: 18, height: 4)
                 }
 
                 HStack(alignment: .bottom, spacing: 4) {
@@ -438,10 +326,10 @@ private struct SettingsStyleFloatingPreview: View {
                         .offset(y: -6)
                 }
             }
-            .offset(x: 265, y: 245)
+            .offset(x: 330, y: 315)
 
             SettingsStyleFloatingBubble()
-                .offset(x: 120, y: 10)
+                .offset(x: 130, y: 20)
         }
     }
 }
@@ -453,30 +341,33 @@ private func posterImage(from url: URL) -> Image? {
 
 private struct SettingsStyleFloatingBubble: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 10) {
                 Circle()
                     .fill(Color(red: 1.0, green: 0.67, blue: 0.25))
                     .frame(width: 10, height: 10)
-                Text("Approvals, follow-ups, and status")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(0.94))
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Color.white.opacity(0.92))
+                    .frame(width: 180, height: 16)
             }
 
-            Text("The floating pet opens anchored bubbles instead of taking over the notch.")
-                .font(.system(size: 22, weight: .medium, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.76))
-                .fixedSize(horizontal: false, vertical: true)
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .fill(Color.white.opacity(0.22))
+                .frame(height: 12)
+
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .fill(Color.white.opacity(0.16))
+                .frame(width: 230, height: 12)
 
             HStack(spacing: 10) {
-                bubbleTag("hover")
-                bubbleTag("click")
-                bubbleTag("right-click settings")
+                bubbleTag(width: 72)
+                bubbleTag(width: 58)
+                bubbleTag(width: 92)
             }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 22)
-        .frame(width: 520, alignment: .leading)
+        .frame(width: 420, alignment: .leading)
         .background(
             FloatingDemoBubbleShape()
                 .fill(Color.black.opacity(0.88))
@@ -488,15 +379,13 @@ private struct SettingsStyleFloatingBubble: View {
         .shadow(color: .black.opacity(0.20), radius: 24, x: 0, y: 14)
     }
 
-    private func bubbleTag(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 18, weight: .bold, design: .rounded))
-            .foregroundStyle(Color.white.opacity(0.86))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+    private func bubbleTag(width: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: 999, style: .continuous)
+            .fill(Color.white.opacity(0.08))
+            .frame(width: width, height: 32)
             .background(
                 Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.08))
+                    .fill(.clear)
             )
     }
 }
