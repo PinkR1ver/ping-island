@@ -38,11 +38,25 @@ async function refreshStars() {
 
 refreshStars();
 
-/* Choice grid: click to select, light up submit button */
 const choiceGrid = document.querySelector(".desktop-demo-choice-grid");
 const submitBtn = document.querySelector(".desktop-demo-submit");
 const confettiColors = ["#fff3d9", "#ffd86b", "#ffb05c", "#ff7a59", "#ffe6f4"];
 let submitCelebrateTimeout = null;
+const detachedPetImages = Array.from(document.querySelectorAll(".detached-header-icon, .floating-pet-image"));
+const detachedPetSources = [
+  { src: "./assets/mascots/claude.gif", alt: "Claude Code mascot" },
+  { src: "./assets/mascots/codex.gif", alt: "Codex mascot" },
+  { src: "./assets/mascots/gemini.gif", alt: "Gemini CLI mascot" },
+  { src: "./assets/mascots/hermes.gif", alt: "Hermes Agent mascot" },
+  { src: "./assets/mascots/qwen.gif", alt: "Qwen Code mascot" },
+  { src: "./assets/mascots/openclaw.gif", alt: "OpenClaw mascot" },
+  { src: "./assets/mascots/opencode.gif", alt: "OpenCode mascot" },
+  { src: "./assets/mascots/cursor.gif", alt: "Cursor mascot" },
+  { src: "./assets/mascots/trae.gif", alt: "Trae mascot" },
+  { src: "./assets/mascots/qoder.gif", alt: "Qoder mascot" },
+  { src: "./assets/mascots/codebuddy.gif", alt: "CodeBuddy mascot" },
+  { src: "./assets/mascots/copilot.gif", alt: "GitHub Copilot mascot" }
+];
 
 function setSubmitReady(isReady) {
   if (!submitBtn) return;
@@ -117,4 +131,18 @@ if (choiceGrid && submitBtn) {
 
     triggerSubmitConfetti(submitBtn);
   });
+}
+
+if (detachedPetImages.length > 0 && detachedPetSources.length > 1) {
+  let detachedPetIndex = 0;
+
+  window.setInterval(() => {
+    detachedPetIndex = (detachedPetIndex + 1) % detachedPetSources.length;
+    const nextPet = detachedPetSources[detachedPetIndex];
+
+    detachedPetImages.forEach((image) => {
+      image.src = nextPet.src;
+      image.alt = nextPet.alt;
+    });
+  }, 5000);
 }

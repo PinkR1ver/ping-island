@@ -6,12 +6,12 @@
     <title>Ping Island | Ambient Control for AI Coding Sessions</title>
     <meta
       name="description"
-      content="Ping Island is a macOS menu bar app that surfaces approvals, questions, completions, and focus return for AI coding sessions in a calm, premium dark interface."
+      content="Ping Island is a macOS menu bar app that surfaces approvals, questions, completions, focus return, and detached pet interactions for AI coding sessions in a calm, premium dark interface."
     />
     <meta property="og:title" content="Ping Island" />
     <meta
       property="og:description"
-      content="A premium dark control surface for Claude Code, Codex, Gemini CLI, Hermes Agent, Qwen Code, OpenClaw, and other AI coding clients on macOS."
+      content="A premium dark control surface for Claude Code, Codex, Gemini CLI, Hermes Agent, Qwen Code, OpenClaw, and other AI coding clients on macOS, now including detached pet mode."
     />
     <meta property="og:type" content="website" />
     <link rel="icon" href="./assets/ping-island-icon.svg" type="image/svg+xml" />
@@ -108,7 +108,6 @@
             </div>
             <div class="desktop-demo-rails" aria-hidden="true"></div>
             <div class="desktop-demo-window">
-
               <div class="desktop-demo-question-group">
                 <article class="desktop-demo-feed-row desktop-demo-feed-row-alert">
                   <img src="./assets/mascots/claude.gif" alt="" class="desktop-demo-feed-icon" />
@@ -283,6 +282,103 @@
         </div>
       </section>
 
+      <section class="content-section detached-feature-section" id="detached-pet">
+        <div class="section-head">
+          <span class="mono-label">Detached Pet / v0.4.0+</span>
+          <h2>New chapter: let the mascot work off the notch.</h2>
+          <p>Detached pet mode moves Ping Island beside the active window, so questions and alerts feel lighter and more contextual.</p>
+        </div>
+
+        <div class="detached-feature-layout">
+          <div class="panel detached-feature-copy">
+            <div class="detached-feature-grid">
+              <article class="detached-feature-card">
+                <span class="mono-label">v0.4.0</span>
+                <h3>Anchor-style expansion</h3>
+                <p>Questions and opened content now grow from the mascot.</p>
+              </article>
+              <article class="detached-feature-card">
+                <span class="mono-label">v0.4.1</span>
+                <h3>Drag guidance and feedback</h3>
+                <p>Onboarding, drag feedback, and completion cues make the mode easier to understand.</p>
+              </article>
+            </div>
+
+            <ul class="detached-feature-list">
+              <li>Keep the mascot near the active window.</li>
+              <li>Show prompts as compact side bubbles.</li>
+              <li>Bring the mascot system into a more visible UI moment.</li>
+            </ul>
+          </div>
+
+          <article class="detached-demo-card">
+            <div class="detached-stage">
+              <div class="detached-stage-decor detached-stage-decor-a" aria-hidden="true"></div>
+              <div class="detached-stage-decor detached-stage-decor-b" aria-hidden="true"></div>
+              <div class="detached-stage-decor detached-stage-decor-c" aria-hidden="true"></div>
+
+              <div class="detached-shell">
+                <div class="detached-window">
+                  <div class="detached-header">
+                    <img src="./assets/mascots/claude.gif" alt="" class="detached-header-icon" />
+                    <div class="detached-header-copy">
+                      <div class="detached-title-row">
+                        <span>github</span>
+                        <span>·</span>
+                        <strong>ask me a question with tool</strong>
+                      </div>
+                      <div class="detached-pill-row">
+                        <span class="detached-pill">&lt;1m</span>
+                        <span class="detached-pill detached-pill-brand">Claude Code</span>
+                        <span class="detached-pill">iTerm2</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="detached-body">
+                    <p class="detached-section-label">Detached pet mode</p>
+                    <h3>Claude Code needs a follow-up</h3>
+                    <p class="detached-summary">
+                      Detached mode keeps the mascot next to the work you are already doing, so the question arrives like a side bubble instead of a big notch takeover.
+                    </p>
+
+                    <h4>What&apos;s your favorite programming language?</h4>
+                    <div class="detached-choice-grid">
+                      <article class="detached-choice-card">
+                        <strong>Python</strong>
+                        <span>Popular for data science and scripting</span>
+                      </article>
+                      <article class="detached-choice-card">
+                        <strong>JavaScript</strong>
+                        <span>The language of the web</span>
+                      </article>
+                      <article class="detached-choice-card">
+                        <strong>Rust</strong>
+                        <span>Systems programming with safety</span>
+                      </article>
+                      <article class="detached-choice-card">
+                        <strong>Go</strong>
+                        <span>Simple and fast for backend services</span>
+                      </article>
+                    </div>
+
+                    <button type="button" class="detached-submit" disabled aria-disabled="true">
+                      Submit all answers
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="floating-pet" aria-label="Detached floating pet">
+                <div class="floating-pet-glow"></div>
+                <img src="./assets/mascots/claude.gif" alt="Claude Code mascot" class="floating-pet-image" />
+                <span class="floating-pet-count">1</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section id="features" class="content-section">
         <div class="section-head">
           <span class="mono-label">Core Features</span>
@@ -342,8 +438,8 @@
             <p>OpenClaw combines managed internal hooks with transcript refill, while OpenCode uses a plugin bridge that keeps app and terminal activity in sync.</p>
           </article>
           <article class="panel feature-card">
-            <h3>Cursor / Qoder</h3>
-            <p>IDE-hosted sessions stay visible through the same monitor layer, with focus-return paths back to the exact project window or terminal surface.</p>
+            <h3>Cursor / Qoder / Trae</h3>
+            <p>IDE-hosted sessions stay visible through the same monitor layer, with focus-return paths back to the exact project window or terminal surface across Cursor, Qoder, and Trae.</p>
           </article>
           <article class="panel feature-card">
             <h3>CodeBuddy / Copilot</h3>
@@ -356,7 +452,7 @@
         <div class="section-head">
           <span class="mono-label">Pet GIF Showcase</span>
           <h2>One mascot system, all your clients.</h2>
-          <p>Each client carries its own animated personality across the notch, session list, and hover preview.</p>
+          <p>Each client carries its own animated personality across the notch, session list, and hover preview, synced to the latest mascot exports from main.</p>
         </div>
 
         <div class="mascot-gallery">
@@ -414,6 +510,13 @@
             <figcaption>
               <span class="mono-label">Cursor</span>
               <strong>IDE navigator</strong>
+            </figcaption>
+          </figure>
+          <figure class="glass-card mascot-card">
+            <img src="./assets/mascots/trae.gif" alt="Trae mascot gif" />
+            <figcaption>
+              <span class="mono-label">Trae</span>
+              <strong>IDE wingmate</strong>
             </figcaption>
           </figure>
           <figure class="glass-card mascot-card">
