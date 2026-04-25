@@ -1100,43 +1100,114 @@ private struct DetachedIslandBubbleShape: Shape {
             DetachedIslandPanelMetrics.bubbleCornerRadius,
             min(rect.width, rect.height) / 2
         )
-        let topLeadingRadius = placement.trimmedCorner == .topLeading ? 0 : radius
-        let topTrailingRadius = placement.trimmedCorner == .topTrailing ? 0 : radius
-        let bottomTrailingRadius = placement.trimmedCorner == .bottomTrailing ? 0 : radius
-        let bottomLeadingRadius = placement.trimmedCorner == .bottomLeading ? 0 : radius
 
-        path.move(to: CGPoint(x: rect.minX + topLeadingRadius, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX - topTrailingRadius, y: rect.minY))
-        addCorner(
-            on: &path,
-            to: CGPoint(x: rect.maxX, y: rect.minY + topTrailingRadius),
-            control: CGPoint(x: rect.maxX, y: rect.minY),
-            radius: topTrailingRadius
-        )
+        // Tail metrics from panel metrics
+        let tailWidth = DetachedIslandPanelMetrics.bubbleTailWidth
+        let tailHeight = DetachedIslandPanelMetrics.bubbleTailHeight
+        let tailOverlap = DetachedIslandPanelMetrics.bubbleTailOverlap
 
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - bottomTrailingRadius))
-        addCorner(
-            on: &path,
-            to: CGPoint(x: rect.maxX - bottomTrailingRadius, y: rect.maxY),
-            control: CGPoint(x: rect.maxX, y: rect.maxY),
-            radius: bottomTrailingRadius
-        )
+        // Determine tail position based on bubble placement relative to pet
+        // Tail points toward the pet (opposite side from pet)
+        let tailOnLeft = placement.isBubbleLeftOfPet   // Pet is to the left, tail points left
+        let tailOnRight = !placement.isBubbleLeftOfPet // Pet is to the right, tail points right
 
-        path.addLine(to: CGPoint(x: rect.minX + bottomLeadingRadius, y: rect.maxY))
-        addCorner(
-            on: &path,
-            to: CGPoint(x: rect.minX, y: rect.maxY - bottomLeadingRadius),
-            control: CGPoint(x: rect.minX, y: rect.maxY),
-            radius: bottomLeadingRadius
-        )
+        // Corner radii - corners on the tail side have no radius
+        let topLeadingRadius = (tailOnLeft) ? 0 : radius
+        let topTrailingRadius = (tailOnRight) ? 0 : radius
+        let bottomTrailingRadius = (tailOnRight) ? 0 : radius
+        let bottomLeadingRadius = (tailOnLeft) ? 0 : radius
 
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + topLeadingRadius))
-        addCorner(
-            on: &path,
-            to: CGPoint(x: rect.minX + topLeadingRadius, y: rect.minY),
-            control: CGPoint(x: rect.minX, y: rect.minY),
-            radius: topLeadingRadius
-        )
+        // Tail vertical position (centered on the side)
+        let tailCenterY = rect.midY
+        let tailHalfWidth = tailWidth / 2
+
+        // Start from top-left
+        if tailOnLeft {
+            // Start after the tail on left side
+            path.move(to: CGPoint(x: rect.minX + tailHeight - tailOverlap, y: rect.minY))
+        } else {
+            path.move(to: CGPoint(x: rect.minX + topLeadingRadius, y: rect.minY))
+        }
+
+        // Top edge to top-right
+        if tailOnRight {
+            path.addLine(to: CGPoint(x: rect.maxX - tailHeight + tailOverlap, y: rect.minY))
+        } else {
+            path.addLine(to: CGPoint(x: rect.maxX - topTrailingRadius, y: rect.minY))
+        }
+
+        // Top-right corner or tail
+        if tailOnRight {
+            // Draw tail pointing right
+            path.addLine(to: CGPoint(x: rect.maxX, y: tailCenterY - tailHalfWidth))
+            path.addLine(to: CGPoint(x: rect.maxX + tailHeight - tailOverlap, y: tailCenterY)) // Tail tip
+            path.addLine(to: CGPoint(x: rect.maxX, y: tailCenterY + tailHalfWidth))
+        } else {
+            addCorner(
+                on: &path,
+                to: CGPoint(x: rect.maxX, y: rect.minY + topTrailingRadius),
+                control: CGPoint(x: rect.maxX, y: rect.minY),
+                radius: topTrailingRadius
+            )
+        }
+
+        // Right edge to bottom-right
+        if tailOnRight {
+            path.addLine(to: CGPoint(x: rect.maxX, y: tailCenterY + tailHalfWidth))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - (tailCenterY - tailHalfWidth)))
+        } else {
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - bottomTrailingRadius))
+        }
+
+        // Bottom-right corner or tail
+        if tailOnRight {
+            // Tail already drawn on right side, just go to bottom
+            path.addLine(to: CGPoint(x: rect.maxX - tailHeight + tailOverlap, y: rect.maxY))
+        } else {
+            addCorner(
+                on: &path,
+                to: CGPoint(x: rect.maxX - bottomTrailingRadius, y: rect.maxY),
+                control: CGPoint(x: rect.maxX, y: rect.maxY),
+                radius: bottomTrailingRadius
+            )
+        }
+
+        // Bottom edge to bottom-left
+        if tailOnLeft {
+            path.addLine(to: CGPoint(x: rect.minX + tailHeight - tailOverlap, y: rect.maxY))
+        } else {
+            path.addLine(to: CGPoint(x: rect.minX + bottomLeadingRadius, y: rect.maxY))
+        }
+
+        // Bottom-left corner or tail
+        if tailOnLeft {
+            // Draw tail pointing left
+            path.addLine(to: CGPoint(x: rect.minX, y: tailCenterY + tailHalfWidth))
+            path.addLine(to: CGPoint(x: rect.minX - tailHeight + tailOverlap, y: tailCenterY)) // Tail tip
+            path.addLine(to: CGPoint(x: rect.minX, y: tailCenterY - tailHalfWidth))
+        } else {
+            addCorner(
+                on: &path,
+                to: CGPoint(x: rect.minX, y: rect.maxY - bottomLeadingRadius),
+                control: CGPoint(x: rect.minX, y: rect.maxY),
+                radius: bottomLeadingRadius
+            )
+        }
+
+        // Left edge back to top-left
+        if tailOnLeft {
+            path.addLine(to: CGPoint(x: rect.minX, y: tailCenterY - tailHalfWidth))
+            path.addLine(to: CGPoint(x: rect.minX + tailHeight - tailOverlap, y: rect.minY))
+        } else {
+            path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + topLeadingRadius))
+            addCorner(
+                on: &path,
+                to: CGPoint(x: rect.minX + topLeadingRadius, y: rect.minY),
+                control: CGPoint(x: rect.minX, y: rect.minY),
+                radius: topLeadingRadius
+            )
+        }
+
         path.closeSubpath()
         return path
     }
