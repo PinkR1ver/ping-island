@@ -155,6 +155,7 @@ struct HookInstaller {
     }
 
     private static let preferredTargetsDefaultsKey = "HookInstaller.preferredTargets.v1"
+    private static let eventSelectionsDefaultsKey = "HookInstaller.eventSelections.v1"
     private static let qoderMigrationDefaultsKey = "HookInstaller.preferredTargets.qoder-default.v1"
     private static let qoderWorkMigrationDefaultsKey = "HookInstaller.preferredTargets.qoderwork-default.v1"
     private static let installedVersionDefaultsKey = "HookInstaller.installedVersion.v1"
@@ -214,7 +215,10 @@ struct HookInstaller {
     }
 
     /// Install managed hooks for preferred clients on app launch.
-    static func installIfNeeded(markPresentationOnboardingPending: (() -> Void)? = nil) {
+    static func installIfNeeded(
+        markPresentationOnboardingPending: (() -> Void)? = nil,
+        markHookInstallOnboardingPending: (() -> Void)? = nil
+    ) {
         // Check if this is first launch and perform auto-integration
         let isFirstLaunch = checkAndMarkFirstLaunch(
             markPresentationOnboardingPending: markPresentationOnboardingPending
@@ -231,13 +235,22 @@ struct HookInstaller {
         installBridgeLauncherIfNeeded()
         removeLegacyTraeHooks()
 
+        if isFirstLaunch {
+            // Defer auto-install of default-enabled profiles to the first-run welcome
+            // sheet so the user can choose between defaults and a customized selection.
+            if let markHookInstallOnboardingPending {
+                markHookInstallOnboardingPending()
+            } else {
+                UserDefaults.standard.set(true, forKey: AppSettingsDefaultKeys.hookInstallOnboardingPending)
+            }
+            updateVersionMetadata()
+            return
+        }
+
         for profile in ClientProfileRegistry.managedHookProfiles {
             let canManageProfile = canManage(profile)
                 || (profile.id == "qoder-cli-hooks" && qoderCLISupportsClaudeHooks)
-            // For first launch, auto-install all defaultEnabled profiles
-            if isFirstLaunch && profile.defaultEnabled && canManageProfile {
-                install(profile, persistPreference: true, bypassAvailabilityCheck: !canManage(profile))
-            } else if preferredTargets.contains(profile.id) && canManageProfile {
+            if preferredTargets.contains(profile.id) && canManageProfile {
                 install(profile, persistPreference: false, bypassAvailabilityCheck: !canManage(profile))
             } else {
                 uninstall(profile, persistPreference: false)
@@ -246,6 +259,27 @@ struct HookInstaller {
 
         // Update version metadata after installation
         updateVersionMetadata()
+    }
+
+    /// Run the default first-run install for every defaultEnabled profile.
+    static func performFirstRunDefaultInstall() {
+        let qoderCLISupportsClaudeHooks = qoderCLIUsesClaudeCompatibleHooks()
+        installBridgeLauncherIfNeeded()
+        for profile in ClientProfileRegistry.managedHookProfiles where profile.defaultEnabled {
+            let canManageProfile = canManage(profile)
+                || (profile.id == "qoder-cli-hooks" && qoderCLISupportsClaudeHooks)
+            guard canManageProfile else { continue }
+            install(profile, persistPreference: true, bypassAvailabilityCheck: !canManage(profile))
+        }
+    }
+
+    static func defaultEnabledManageableProfiles() -> [ManagedHookClientProfile] {
+        let qoderCLISupportsClaudeHooks = qoderCLIUsesClaudeCompatibleHooks()
+        return ClientProfileRegistry.managedHookProfiles.filter { profile in
+            guard profile.defaultEnabled else { return false }
+            return canManage(profile)
+                || (profile.id == "qoder-cli-hooks" && qoderCLISupportsClaudeHooks)
+        }
     }
 
     /// Check if this is the first launch and mark as installed
@@ -329,6 +363,40 @@ struct HookInstaller {
         install(profile, persistPreference: true)
     }
 
+    static func install(_ profile: ManagedHookClientProfile, selection: HookInstallSelection) {
+        if profile.supportsEventSelection {
+            saveSelection(selection, for: profile)
+        }
+        install(profile, persistPreference: true)
+    }
+
+    static func loadSelection(for profile: ManagedHookClientProfile) -> HookInstallSelection {
+        guard profile.supportsEventSelection else {
+            return HookInstallSelection.defaultSelection(for: profile)
+        }
+        guard let stored = UserDefaults.standard.dictionary(forKey: eventSelectionsDefaultsKey) as? [String: [String]],
+              let names = stored[profile.id] else {
+            return HookInstallSelection.defaultSelection(for: profile)
+        }
+        let validNames = Set(profile.events.map(\.name))
+        let filtered = Set(names).intersection(validNames)
+        guard !filtered.isEmpty else {
+            return HookInstallSelection.defaultSelection(for: profile)
+        }
+        return HookInstallSelection(enabledEventNames: filtered)
+    }
+
+    static func saveSelection(_ selection: HookInstallSelection, for profile: ManagedHookClientProfile) {
+        var stored = (UserDefaults.standard.dictionary(forKey: eventSelectionsDefaultsKey) as? [String: [String]]) ?? [:]
+        stored[profile.id] = Array(selection.enabledEventNames).sorted()
+        UserDefaults.standard.set(stored, forKey: eventSelectionsDefaultsKey)
+    }
+
+    private static func effectiveEvents(for profile: ManagedHookClientProfile) -> [HookInstallEventDescriptor] {
+        guard profile.supportsEventSelection else { return profile.events }
+        return loadSelection(for: profile).filteredEvents(for: profile)
+    }
+
     static func createTemporarySettingsFile(for profileID: String) -> URL? {
         guard let profile = ClientProfileRegistry.managedHookProfile(id: profileID) else {
             return nil
@@ -344,7 +412,7 @@ struct HookInstaller {
         let fileURL = directory.appendingPathComponent("\(profile.id)-\(UUID().uuidString).json")
         let command = bridgeCommand(source: profile.bridgeSource, extraArguments: profile.bridgeExtraArguments)
         var hooks: [String: Any] = [:]
-        for event in profile.events {
+        for event in effectiveEvents(for: profile) {
             hooks[event.name] = makeHookEntries(command: command, event: event)
         }
         writeJSONObject(["hooks": hooks], to: fileURL)
@@ -640,14 +708,15 @@ struct HookInstaller {
     }
 
     private static func isManagedPluginEnabled(_ profile: ManagedHookClientProfile) -> Bool {
-        guard let url = profile.activationConfigurationURL,
-              let data = try? Data(contentsOf: url) else {
-            return false
+        managedPluginActivationConfigurationURLs(for: profile).contains { url in
+            guard let data = try? Data(contentsOf: url) else {
+                return false
+            }
+            return isManagedPluginEnabled(
+                existingData: data,
+                pluginURL: profile.primaryConfigurationURL
+            )
         }
-        return isManagedPluginEnabled(
-            existingData: data,
-            pluginURL: profile.primaryConfigurationURL
-        )
     }
 
     private static func setInternalHookEnabled(_ enabled: Bool, for profile: ManagedHookClientProfile, customConfigURL: URL? = nil) {
@@ -675,21 +744,47 @@ struct HookInstaller {
         customConfigURL: URL? = nil,
         pluginURL: URL? = nil
     ) {
-        let url = customConfigURL ?? profile.activationConfigurationURL
         let pluginURL = pluginURL ?? profile.primaryConfigurationURL
-        guard let url else {
+        let urls = managedPluginActivationConfigurationURLs(
+            for: profile,
+            customConfigURL: customConfigURL
+        )
+        guard !urls.isEmpty else {
             return
         }
 
-        let existingData = try? Data(contentsOf: url)
-        let data = updatedConfigurationData(
-            existingData: existingData,
-            profile: profile,
-            customCommand: "",
-            installing: enabled,
-            pluginURL: pluginURL
-        )
-        writeData(data, to: url)
+        let targetURLs = enabled ? [urls[0]] : urls
+        for url in targetURLs {
+            let existingData = try? Data(contentsOf: url)
+            let data = updatedConfigurationData(
+                existingData: existingData,
+                profile: profile,
+                customCommand: "",
+                installing: enabled,
+                pluginURL: pluginURL
+            )
+            writeData(data, to: url)
+        }
+    }
+
+    private static func managedPluginActivationConfigurationURLs(
+        for profile: ManagedHookClientProfile,
+        customConfigURL: URL? = nil
+    ) -> [URL] {
+        guard let primaryURL = customConfigURL ?? profile.activationConfigurationURL else {
+            return []
+        }
+
+        guard profile.id == "opencode-hooks" else {
+            return [primaryURL]
+        }
+
+        // OpenCode 1.14 still reads legacy config.json, but current docs name opencode.json as the global config.
+        let legacyURL = primaryURL.deletingLastPathComponent().appendingPathComponent("config.json")
+        if legacyURL.standardizedFileURL == primaryURL.standardizedFileURL {
+            return [primaryURL]
+        }
+        return [primaryURL, legacyURL]
     }
 
     private static func removeLegacyTraeHooks() {
@@ -1061,12 +1156,14 @@ struct HookInstaller {
             json = existing
         }
 
+        let activeEvents = effectiveEvents(for: profile)
+
         if profile.brand == .copilot {
             // GitHub Copilot expects flat command entries and does not include the
             // hook event name in stdin, so we bind the event explicitly here.
             json["version"] = 1
             var hooks = removingIslandManagedHooks(from: json["hooks"] as? [String: Any] ?? [:])
-            for event in profile.events {
+            for event in activeEvents {
                 let command = bridgeCommand(
                     source: profile.bridgeSource,
                     extraArguments: profile.bridgeExtraArguments + ["--event", event.name]
@@ -1087,7 +1184,7 @@ struct HookInstaller {
             || profile.id == "codebuddy-cli-hooks"
 
         var hooks = removingIslandManagedHooks(from: json["hooks"] as? [String: Any] ?? [:], profile: profile)
-        for event in profile.events {
+        for event in activeEvents {
             let existingEvent = hooks[event.name] as? [[String: Any]]
             hooks[event.name] = normalizedHookEntries(
                 existingEvent,
@@ -2983,9 +3080,9 @@ struct HookInstaller {
         switch profile.installationKind {
         case .pluginFile:
             if baseDirectory.lastPathComponent == "plugins" {
-                return baseDirectory.deletingLastPathComponent().appendingPathComponent("config.json")
+                return baseDirectory.deletingLastPathComponent().appendingPathComponent("opencode.json")
             }
-            return baseDirectory.appendingPathComponent("config.json")
+            return baseDirectory.appendingPathComponent("opencode.json")
         case .jsonHooks, .pluginDirectory:
             return nil
         case .hookDirectory:
@@ -3005,7 +3102,7 @@ struct HookInstaller {
     private static func customActivationConfigurationURL(for profile: ManagedHookClientProfile, installedURL: URL) -> URL? {
         switch profile.installationKind {
         case .pluginFile:
-            return installedURL.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("config.json")
+            return installedURL.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("opencode.json")
         case .jsonHooks, .pluginDirectory:
             return nil
         case .hookDirectory:
