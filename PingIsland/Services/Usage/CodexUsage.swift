@@ -131,17 +131,30 @@ enum CodexUsageLoader {
         let windows = ["primary", "secondary"].compactMap { key in
             usageWindow(for: key, in: rateLimits)
         }
-        guard !windows.isEmpty else {
-            return nil
+        if !windows.isEmpty {
+            return CodexUsageSnapshot(
+                sourceFilePath: filePath,
+                capturedAt: timestamp(from: object["timestamp"]) ?? fallbackTimestamp,
+                planType: string(from: rateLimits["plan_type"]),
+                limitID: string(from: rateLimits["limit_id"]),
+                windows: windows
+            )
         }
 
-        return CodexUsageSnapshot(
-            sourceFilePath: filePath,
-            capturedAt: timestamp(from: object["timestamp"]) ?? fallbackTimestamp,
-            planType: string(from: rateLimits["plan_type"]),
-            limitID: string(from: rateLimits["limit_id"]),
-            windows: windows
-        )
+        // Rate-limit windows went null (credits system or limit exhausted).
+        // Build a synthetic window from the available credit / limit info so the
+        // bar reflects the real state instead of falling back to stale cached data.
+        if let synthetic = creditBasedWindow(from: rateLimits) {
+            return CodexUsageSnapshot(
+                sourceFilePath: filePath,
+                capturedAt: timestamp(from: object["timestamp"]) ?? fallbackTimestamp,
+                planType: string(from: rateLimits["plan_type"]),
+                limitID: string(from: rateLimits["limit_id"]),
+                windows: [synthetic]
+            )
+        }
+
+        return nil
     }
 
     private nonisolated static func usageWindow(for key: String, in rateLimits: [String: Any]) -> CodexUsageWindow? {
@@ -158,6 +171,46 @@ enum CodexUsageLoader {
             leftPercentage: max(0, 100 - usedPercentage),
             windowMinutes: windowMinutes,
             resetsAt: date(from: payload["resets_at"])
+        )
+    }
+
+    private nonisolated static func creditBasedWindow(
+        from rateLimits: [String: Any]
+    ) -> CodexUsageWindow? {
+        if string(from: rateLimits["rate_limit_reached_type"]) != nil {
+            return CodexUsageWindow(
+                key: "limit",
+                label: "Limit",
+                usedPercentage: 100,
+                leftPercentage: 0,
+                windowMinutes: 0,
+                resetsAt: nil
+            )
+        }
+
+        guard let credits = rateLimits["credits"] as? [String: Any] else {
+            return nil
+        }
+
+        let unlimited = credits["unlimited"] as? Bool ?? false
+        let hasCredits = credits["has_credits"] as? Bool ?? false
+        let usedPercentage: Double
+
+        if unlimited {
+            usedPercentage = 0
+        } else if !hasCredits {
+            usedPercentage = 100
+        } else {
+            usedPercentage = 0
+        }
+
+        return CodexUsageWindow(
+            key: "credits",
+            label: "Credits",
+            usedPercentage: usedPercentage,
+            leftPercentage: max(0, 100 - usedPercentage),
+            windowMinutes: 0,
+            resetsAt: nil
         )
     }
 
