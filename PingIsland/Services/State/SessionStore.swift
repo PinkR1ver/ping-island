@@ -67,7 +67,7 @@ actor SessionStore {
     private let codexHookPlaceholderPruneDelayNs: UInt64 = 10_000_000_000
     private let codexAppServerPlaceholderPruneDelayNs: UInt64 = 60_000_000_000
     private let codexContinuationMergeWindow: TimeInterval = 10 * 60
-    private let apparentIdleProcessingGraceWindow: TimeInterval = 5 * 60
+    private let apparentIdleProcessingGraceWindow: TimeInterval = 15
     private let qoderConversationPollIntervalNs: UInt64 = 250_000_000
     private let qoderConversationPollTimeoutNs: UInt64 = 120_000_000_000
     private let qoderSubagentAssociationWindow: TimeInterval = 2 * 60
