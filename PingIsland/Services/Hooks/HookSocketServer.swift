@@ -434,6 +434,7 @@ private struct BridgeEnvelopeIntervention: Codable, Sendable {
     let title: String?
     let message: String?
     let options: [BridgeEnvelopeInterventionOption]?
+    let supportsSessionScope: Bool?
     let sessionID: String?
 
     private enum CodingKeys: String, CodingKey {
@@ -442,6 +443,7 @@ private struct BridgeEnvelopeIntervention: Codable, Sendable {
         case title
         case message
         case options
+        case supportsSessionScope
         case sessionID
     }
 
@@ -464,7 +466,7 @@ private struct BridgeEnvelopeIntervention: Codable, Sendable {
             message: message ?? "",
             options: (options ?? []).map(\.sessionOption),
             questions: [],
-            supportsSessionScope: false,
+            supportsSessionScope: supportsSessionScope ?? (kind == .approval),
             metadata: interventionMetadata
         )
     }
