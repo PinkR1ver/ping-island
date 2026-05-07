@@ -303,8 +303,10 @@ actor SessionStore {
         // race where a Stop event runs during a Notification's await, ends its own
         // fresh copy, and then the Notification resumes against an already-ended
         // session.
-        if sessions[sessionId] == nil {
+        let isNewSession = sessions[sessionId] == nil
+        if isNewSession {
             sessions[sessionId] = session
+            endOrphanedSessions(sameProviderAs: session, newSessionId: sessionId)
         }
 
         let tree = (event.pid != nil || event.tty != nil) ? ProcessTreeBuilder.shared.buildTree() : [:]
@@ -2107,6 +2109,30 @@ actor SessionStore {
             cancelPendingSync(sessionId: childSessionId)
             cancelPendingCodexPlaceholderPrune(sessionId: childSessionId)
             cancelPendingQoderConversationPoll(sessionId: childSessionId)
+        }
+    }
+
+    /// When a new session starts for a provider, end any active sessions from the same
+    /// provider + cwd that look orphaned (process died without sending Stop). This keeps
+    /// the primary list clean when the user quits and restarts Claude in the same project.
+    private func endOrphanedSessions(
+        sameProviderAs session: SessionState,
+        newSessionId: String
+    ) {
+        let provider = session.provider
+        let cwd = session.cwd
+        guard !cwd.isEmpty else { return }
+        guard provider == .claude else { return }
+        guard session.ingress != .nativeRuntime else { return }
+
+        for (existingId, var existing) in sessions {
+            guard existingId != newSessionId else { continue }
+            guard existing.provider == provider else { continue }
+            guard existing.cwd == cwd else { continue }
+            guard existing.phase != .ended else { continue }
+            guard !existing.needsManualAttention else { continue }
+            markSessionEnded(&existing)
+            sessions[existingId] = existing
         }
     }
 
