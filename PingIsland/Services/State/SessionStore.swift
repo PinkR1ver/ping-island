@@ -67,7 +67,6 @@ actor SessionStore {
     private let codexHookPlaceholderPruneDelayNs: UInt64 = 10_000_000_000
     private let codexAppServerPlaceholderPruneDelayNs: UInt64 = 60_000_000_000
     private let codexContinuationMergeWindow: TimeInterval = 10 * 60
-    private let apparentIdleProcessingGraceWindow: TimeInterval = 15
     private let qoderConversationPollIntervalNs: UInt64 = 250_000_000
     private let qoderConversationPollTimeoutNs: UInt64 = 120_000_000_000
     private let qoderSubagentAssociationWindow: TimeInterval = 2 * 60
@@ -379,7 +378,8 @@ actor SessionStore {
 
         let previousPendingHookResponse = pendingHookResponse(in: session)
 
-        if event.status == "ended", !shouldPreserveEndedStopForAnsweredQuestion {
+        if (event.status == "ended" || event.event == "Stop" || event.event == "SessionEnd"),
+           !shouldPreserveEndedStopForAnsweredQuestion {
             markSessionEnded(&session)
             cancelOrphanedPendingHookResponse(
                 previousPendingHookResponse,
@@ -1692,13 +1692,7 @@ actor SessionStore {
     ) -> Bool {
         guard session.phase.isActive else { return false }
         guard incomingPhase == .idle else { return false }
-
-        if sessionHasLiveExecutionEvidence(session) {
-            return true
-        }
-
-        guard let previousLastActivity else { return false }
-        return referenceDate.timeIntervalSince(previousLastActivity) < apparentIdleProcessingGraceWindow
+        return sessionHasLiveExecutionEvidence(session)
     }
 
     private func sessionHasLiveExecutionEvidence(_ session: SessionState) -> Bool {
@@ -2156,38 +2150,22 @@ actor SessionStore {
             guard session.phase != .ended else { continue }
             guard !session.needsManualAttention else { continue }
 
-            guard let pid = session.pid, pid > 0 else { continue }
-
-            // Give the bridge a grace period — it may be restarting.
             let idleSeconds = Date().timeIntervalSince(session.lastActivity)
             guard idleSeconds >= 30 else { continue }
 
-            if Darwin.kill(pid_t(pid), 0) != 0 && errno == ESRCH {
-                markSessionEnded(&session)
-                sessions[sessionId] = session
-            }
-        }
-    }
-
-    /// Periodically check active Claude sessions whose bridge process has died without
-    /// sending a Stop event (crash, SIGKILL, terminal closed). End them so the bar
-    /// doesn't keep showing dead sessions as still working.
-    func pruneOrphanedSessions() {
-        for (sessionId, var session) in sessions {
-            guard session.provider == .claude else { continue }
-            guard session.ingress != .nativeRuntime else { continue }
-            guard session.phase != .ended else { continue }
-            guard !session.needsManualAttention else { continue }
-
-            guard let pid = session.pid, pid > 0 else { continue }
-
-            // Give the bridge a grace period — it may be restarting.
-            let idleSeconds = Date().timeIntervalSince(session.lastActivity)
-            guard idleSeconds >= 30 else { continue }
-
-            if Darwin.kill(pid_t(pid), 0) != 0 && errno == ESRCH {
-                markSessionEnded(&session)
-                sessions[sessionId] = session
+            if let pid = session.pid, pid > 0 {
+                if Darwin.kill(pid_t(pid), 0) != 0 && errno == ESRCH {
+                    markSessionEnded(&session)
+                    sessions[sessionId] = session
+                }
+            } else if session.phase.isActive, !sessionHasLiveExecutionEvidence(session) {
+                // No PID available but session looks idle with no live evidence.
+                // Transition from processing/compacting to idle so it doesn't
+                // appear stuck as "working" indefinitely.
+                if session.phase.canTransition(to: .idle) {
+                    session.phase = .idle
+                    sessions[sessionId] = session
+                }
             }
         }
     }
