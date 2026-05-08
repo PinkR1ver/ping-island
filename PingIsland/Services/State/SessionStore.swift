@@ -378,8 +378,7 @@ actor SessionStore {
 
         let previousPendingHookResponse = pendingHookResponse(in: session)
 
-        if (event.status == "ended" || event.event == "Stop" || event.event == "SessionEnd"),
-           !shouldPreserveEndedStopForAnsweredQuestion {
+        if event.status == "ended", !shouldPreserveEndedStopForAnsweredQuestion {
             markSessionEnded(&session)
             cancelOrphanedPendingHookResponse(
                 previousPendingHookResponse,

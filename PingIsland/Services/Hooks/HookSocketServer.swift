@@ -636,8 +636,10 @@ private extension BridgeEnvelope {
         switch eventType {
         case "SessionEnd":
             return "ended"
-        case "SessionStart", "Stop", "SubagentStop":
+        case "SessionStart", "SubagentStop":
             return "waiting_for_input"
+        case "Stop":
+            return "idle"
         case "UserPromptSubmit", "PostToolUse":
             return "processing"
         case "PreToolUse":
