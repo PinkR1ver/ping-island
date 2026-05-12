@@ -8,7 +8,7 @@ current direct-download lane.
 
 ## Current App Identity
 
-- App Store name: ping-island
+- App Store name: Ping Island
 - Bundle display name: Ping Island
 - Bundle ID: `com.wudanwu.PingIsland`
 - Version: `0.12.0`
@@ -116,6 +116,7 @@ and `-authenticationKeyIssuerID`.
 
 ## Metadata Draft
 
+- Title: Ping Island
 - Subtitle: AI coding session monitor
 - Promotional text: Monitor Claude Code, Codex, Gemini CLI, Qwen Code, Hermes, and compatible hook-driven agent sessions from a native macOS menu bar utility.
 - Description: Ping Island brings AI coding session status, approval prompts, follow-up questions, remote SSH activity, and completion notifications into a compact macOS menu bar surface. It supports Claude Code, Codex, Gemini CLI, Qwen Code, Hermes Agent, and compatible hook-driven clients, with mascot-rich status views, terminal jump-back, and docked or detached modes.
